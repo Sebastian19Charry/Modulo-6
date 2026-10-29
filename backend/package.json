@@ -1,0 +1,13 @@
+{
+  "name": "modulo-6-backend",
+  "version": "1.0.0",
+  "description": "API REST del Módulo 6: Administración, Reportes, Finanzas e Inventario",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "keywords": ["scrum", "patinaje", "modulo6", "fis"],
+  "author": "Grupo 6 (Sebastián Charry, Bettsy Garcés, Alejandro Junco, Sergio Mendivelso)",
+  "license": "ISC"
+}

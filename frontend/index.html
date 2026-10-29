@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Módulo 6 — Escuela de Patinaje (Administración, Reportes, Finanzas e Inventario)</title>
+  <!-- Tailwind CSS CDN para estilos inmediatos y limpios -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .badge-ok { background-color: #def7ec; color: #03543f; }
+    .badge-warn { background-color: #fef08a; color: #713f12; }
+    .badge-alert { background-color: #fde8e8; color: #9b1c1c; }
+    .badge-info { background-color: #e1effe; color: #1e429f; }
+    @media print {
+      body * { visibility: hidden; }
+      #printable-area, #printable-area * { visibility: visible; }
+      #printable-area { position: absolute; left: 0; top: 0; width: 100%; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+
+  <!-- NAVBAR SUPERIOR -->
+  <header class="bg-indigo-900 text-white shadow-lg sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+      <div class="flex items-center space-x-3">
+        <div class="bg-indigo-700 p-2 rounded-lg">
+          <i class="fa-solid fa-person-skating text-xl text-yellow-400"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight">Escuela de Patinaje — Módulo 6</h1>
+          <p class="text-xs text-indigo-200">Administración, Reportes, Finanzas e Inventario</p>
+        </div>
+      </div>
+
+      <!-- SIMULADOR DE CONTROL DE ROLES (HU-6.3) -->
+      <div class="flex items-center space-x-4 bg-indigo-950/60 px-4 py-1.5 rounded-full border border-indigo-700">
+        <span class="text-xs font-semibold text-indigo-300"><i class="fa-solid fa-user-shield mr-1"></i> Rol en sesión:</span>
+        <select id="role-switcher" onchange="cambiarRolSesion(this.value)" class="bg-indigo-800 text-white text-xs font-bold rounded-md px-2.5 py-1 focus:ring-2 focus:ring-yellow-400 outline-none cursor-pointer">
+          <option value="ADMINISTRADOR">👑 Administrador (Acceso Total)</option>
+          <option value="CONTADOR">📊 Contador (Solo Reportes)</option>
+        </select>
+        <span id="role-badge" class="px-2 py-0.5 text-xs rounded-full bg-emerald-500 text-white font-bold">Admin Activo</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 flex flex-col md:flex-row gap-6">
+
+    <!-- BARRA LATERAL DE NAVEGACIÓN -->
+    <aside class="w-full md:w-64 bg-white rounded-xl shadow-sm border border-slate-200 p-3 flex flex-col gap-1.5 h-fit">
+      <p class="text-xs font-bold uppercase text-slate-400 px-3 py-1">Navegación del Módulo</p>
+      
+      <button onclick="navegarA('tab-dashboard')" id="btn-tab-dashboard" class="tab-btn flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 transition">
+        <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+        <span>Panel General (KPIs)</span>
+        <span class="text-[10px] ml-auto bg-indigo-200 text-indigo-800 px-1.5 py-0.5 rounded font-mono">HU-6.1</span>
+      </button>
+
+      <button onclick="navegarA('tab-personal')" id="btn-tab-personal" class="tab-btn flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100 transition">
+        <i class="fa-solid fa-users-gear w-5 text-center"></i>
+        <span>Personal y Roles</span>
+        <span class="text-[10px] ml-auto bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-mono">HU-6.2/3</span>
+      </button>
+
+      <button onclick="navegarA('tab-inventario')" id="btn-tab-inventario" class="tab-btn flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100 transition">
+        <i class="fa-solid fa-boxes-stacked w-5 text-center"></i>
+        <span>Inventario Uniformes</span>
+        <span class="text-[10px] ml-auto bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-mono">HU-6.6</span>
+      </button>
+
+      <button onclick="navegarA('tab-ventas')" id="btn-tab-ventas" class="tab-btn flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100 transition">
+        <i class="fa-solid fa-cash-register w-5 text-center"></i>
+        <span>Venta de Uniformes</span>
+        <span class="text-[10px] ml-auto bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-mono">HU-6.7</span>
+      </button>
+
+      <button onclick="navegarA('tab-prestamos')" id="btn-tab-prestamos" class="tab-btn flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100 transition">
+        <i class="fa-solid fa-hand-holding-hand w-5 text-center"></i>
+        <span>Préstamo y Entrega</span>
+        <span class="text-[10px] ml-auto bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-mono">HU-6.8</span>
+      </button>
+
+      <button onclick="navegarA('tab-reportes')" id="btn-tab-reportes" class="tab-btn flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100 transition">
+        <i class="fa-solid fa-file-invoice-dollar w-5 text-center"></i>
+        <span>Reportes Financieros</span>
+        <span class="text-[10px] ml-auto bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-mono">HU-6.4/5</span>
+      </button>
+
+      <div class="mt-4 pt-3 border-t border-slate-200 px-3">
+        <div class="text-[11px] text-slate-400">Grupo 6 — Scrum Master: Sebastián Charry</div>
+        <div class="text-[10px] text-slate-400 mt-1">Bettsy G. | Alejandro J. | Sergio M.</div>
+      </div>
+    </aside>
+
+    <!-- ÁREA DE CONTENIDO PRINCIPAL -->
+    <main class="flex-1">
+
+      <!-- MENSAJE DE ACCESO BLOQUEADO (HU-6.3) -->
+      <div id="bloqueo-contador" class="hidden bg-amber-50 border-l-4 border-amber-500 p-6 rounded-xl shadow-sm mb-6">
+        <div class="flex items-center gap-4">
+          <div class="text-3xl text-amber-500"><i class="fa-solid fa-lock"></i></div>
+          <div>
+            <h3 class="text-base font-bold text-amber-900">Acceso no autorizado para el rol Contador (HU-6.3)</h3>
+            <p class="text-sm text-amber-800 mt-1">
+              Según los criterios de aceptación de <strong>HU-6.3</strong>, el rol Contador tiene bloqueada la creación y modificación de usuarios, personal, inventario, ventas y préstamos. Solo tiene autorización para consultar y exportar <strong>Reportes Financieros</strong>.
+            </p>
+            <button onclick="navegarA('tab-reportes')" class="mt-3 px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">
+              Ir a Reportes Financieros <i class="fa-solid fa-arrow-right ml-1"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- =================================================================== -->
+      <!-- TAB 1: DASHBOARD GENERAL (HU-6.1 / RF-M6-01) -->
+      <!-- =================================================================== -->
+      <section id="tab-dashboard" class="tab-content space-y-6">
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-chart-pie text-indigo-600"></i> Panel General Administrativo
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">Indicadores consolidados en tiempo real de la escuela de patinaje (HU-6.1)</p>
+          </div>
+
+          <!-- Selector de período para Ingresos (Criterio HU-6.1) -->
+          <div class="flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
+            <span class="text-xs font-semibold text-slate-600"><i class="fa-regular fa-calendar mr-1"></i> Período ingresos:</span>
+            <input type="date" id="kpi-fecha-inicio" value="2026-10-01" class="text-xs border border-slate-300 rounded px-2 py-1 outline-none">
+            <span class="text-xs text-slate-400">al</span>
+            <input type="date" id="kpi-fecha-fin" value="2026-10-31" class="text-xs border border-slate-300 rounded px-2 py-1 outline-none">
+            <button onclick="recalcularKPIs()" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1 rounded font-semibold transition">
+              Filtrar
+            </button>
+          </div>
+        </div>
+
+        <!-- 6 TARJETAS KPI (Criterio de Aceptación 1 de HU-6.1) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <!-- KPI 1: Patinadores Activos (M2) -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
+              <i class="fa-solid fa-person-skating"></i>
+            </div>
+            <div>
+              <p class="text-xs font-semibold text-slate-500 uppercase">Estudiantes Activos</p>
+              <h3 id="kpi-estudiantes" class="text-2xl font-black text-slate-900">48</h3>
+              <p class="text-[11px] text-blue-600 font-medium"><i class="fa-solid fa-plug mr-1"></i>Fuente: Módulo 2</p>
+            </div>
+          </div>
+
+          <!-- KPI 2: Grupos Activos (M3) -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl">
+              <i class="fa-solid fa-layer-group"></i>
+            </div>
+            <div>
+              <p class="text-xs font-semibold text-slate-500 uppercase">Grupos Activos</p>
+              <h3 id="kpi-grupos" class="text-2xl font-black text-slate-900">6</h3>
+              <p class="text-[11px] text-purple-600 font-medium"><i class="fa-solid fa-plug mr-1"></i>Fuente: Módulo 3</p>
+            </div>
+          </div>
+
+          <!-- KPI 3: Profesores Activos (M6/M1) -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+              <i class="fa-solid fa-chalkboard-user"></i>
+            </div>
+            <div>
+              <p class="text-xs font-semibold text-slate-500 uppercase">Profesores Activos</p>
+              <h3 id="kpi-profesores" class="text-2xl font-black text-slate-900">4</h3>
+              <p class="text-[11px] text-emerald-600 font-medium"><i class="fa-solid fa-check mr-1"></i>Fuente: M6 Personal</p>
+            </div>
+          </div>
+
+          <!-- KPI 4: Cartera Pendiente (M5) -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl">
+              <i class="fa-solid fa-hand-holding-dollar"></i>
+            </div>
+            <div>
+              <p class="text-xs font-semibold text-slate-500 uppercase">Cartera Pendiente</p>
+              <h3 id="kpi-cartera" class="text-2xl font-black text-rose-600">$ 1.250.000</h3>
+              <p class="text-[11px] text-rose-500 font-medium"><i class="fa-solid fa-plug mr-1"></i>Fuente: Módulo 5</p>
+            </div>
+          </div>
+
+          <!-- KPI 5: Ingresos del Período (M5 + M6) -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center text-xl">
+              <i class="fa-solid fa-money-bill-trend-up"></i>
+            </div>
+            <div>
+              <p class="text-xs font-semibold text-slate-500 uppercase">Ingresos Período</p>
+              <h3 id="kpi-ingresos" class="text-2xl font-black text-teal-700">$ 4.890.000</h3>
+              <p class="text-[11px] text-teal-600 font-medium"><i class="fa-solid fa-bolt mr-1"></i>Recalcula con fechas</p>
+            </div>
+          </div>
+
+          <!-- KPI 6: Uniformes Disponibles (M6) -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+              <i class="fa-solid fa-shirt"></i>
+            </div>
+            <div>
+              <p class="text-xs font-semibold text-slate-500 uppercase">Existencias Uniformes</p>
+              <h3 id="kpi-uniformes" class="text-2xl font-black text-slate-900">42 unidades</h3>
+              <p class="text-[11px] text-amber-600 font-medium"><i class="fa-solid fa-warehouse mr-1"></i>Stock total disponible</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alertas rápidas del sistema -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <h4 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-triangle-exclamation text-amber-500"></i> Alertas Operativas Automáticas
+          </h4>
+          <div class="space-y-2 text-xs">
+            <div class="flex items-center justify-between p-2.5 rounded-lg bg-rose-50 text-rose-800 border border-rose-200">
+              <span class="flex items-center gap-2"><i class="fa-solid fa-circle-exclamation"></i> <strong>Inventario:</strong> La referencia Licra Competencia Talla 12 tiene existencias por debajo del mínimo (2 disponibles / mín 5).</span>
+              <button onclick="navegarA('tab-inventario')" class="text-[11px] font-bold text-rose-700 underline">Ver inventario</button>
+            </div>
+            <div class="flex items-center justify-between p-2.5 rounded-lg bg-amber-50 text-amber-800 border border-amber-200">
+              <span class="flex items-center gap-2"><i class="fa-solid fa-clock"></i> <strong>Préstamos:</strong> Existen 2 préstamos de uniformes con fecha prevista de devolución vencida.</span>
+              <button onclick="navegarA('tab-prestamos')" class="text-[11px] font-bold text-amber-700 underline">Ver préstamos</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- TAB 2: PERSONAL Y ROLES (HU-6.2 y HU-6.3 / RF-M6-02 y RF-M6-03) -->
+      <!-- =================================================================== -->
+      <section id="tab-personal" class="tab-content hidden space-y-6">
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-users-gear text-indigo-600"></i> Registro y Administración de Personal
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">Control del equipo de trabajo y asignación de permisos al rol Contador (HU-6.2 y HU-6.3)</p>
+          </div>
+          <button onclick="abrirModalPersonal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-2 transition">
+            <i class="fa-solid fa-user-plus"></i> Registrar Nuevo Trabajador
+          </button>
+        </div>
+
+        <!-- Filtros y Búsqueda -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-3 items-center justify-between">
+          <div class="relative w-full sm:w-80">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+            <input type="text" id="buscar-personal" onkeyup="renderizarTablaPersonal()" placeholder="Buscar por nombre o documento..." class="w-full text-xs pl-8 pr-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-indigo-500">
+          </div>
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <span class="text-xs font-semibold text-slate-500">Estado:</span>
+            <select id="filtro-estado-personal" onchange="renderizarTablaPersonal()" class="text-xs border border-slate-300 rounded-lg px-3 py-2 outline-none cursor-pointer">
+              <option value="TODOS">Todos</option>
+              <option value="ACTIVO" selected>Solo Activos</option>
+              <option value="INACTIVO">Solo Inactivos (Borrado Lógico)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tabla de Personal -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 text-slate-600 uppercase text-[11px] border-b border-slate-200">
+              <tr>
+                <th class="px-4 py-3">Documento</th>
+                <th class="px-4 py-3">Nombre Completo</th>
+                <th class="px-4 py-3">Correo Institucional</th>
+                <th class="px-4 py-3">Teléfono</th>
+                <th class="px-4 py-3">Cargo</th>
+                <th class="px-4 py-3">Rol Sistema</th>
+                <th class="px-4 py-3">Estado Laboral</th>
+                <th class="px-4 py-3 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-personal" class="divide-y divide-slate-200">
+              <!-- Se renderiza por JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- TAB 3: INVENTARIO DE UNIFORMES (HU-6.6 / RF-M6-06) -->
+      <!-- =================================================================== -->
+      <section id="tab-inventario" class="tab-content hidden space-y-6">
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-boxes-stacked text-indigo-600"></i> Registro y Control de Uniformes
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">Control de existencias, alerta de stock mínimo y unicidad compuesta (HU-6.6)</p>
+          </div>
+          <button onclick="abrirModalUniforme()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-2 transition">
+            <i class="fa-solid fa-plus"></i> Registrar Nueva Referencia
+          </button>
+        </div>
+
+        <!-- Tabla de Inventario -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 text-slate-600 uppercase text-[11px] border-b border-slate-200">
+              <tr>
+                <th class="px-4 py-3">Referencia</th>
+                <th class="px-4 py-3">Prenda</th>
+                <th class="px-4 py-3">Talla</th>
+                <th class="px-4 py-3">Tipo</th>
+                <th class="px-4 py-3">Costo</th>
+                <th class="px-4 py-3">Precio Venta</th>
+                <th class="px-4 py-3 text-center">Disponible</th>
+                <th class="px-4 py-3 text-center">Mínimo</th>
+                <th class="px-4 py-3 text-center">Estado Alerta</th>
+                <th class="px-4 py-3 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-uniformes" class="divide-y divide-slate-200">
+              <!-- Renderiza JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- TAB 4: VENTA DE UNIFORMES (HU-6.7 / RF-M6-07) -->
+      <!-- =================================================================== -->
+      <section id="tab-ventas" class="tab-content hidden space-y-6">
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+          <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-cash-register text-indigo-600"></i> Registro de Venta de Uniformes
+          </h2>
+          <p class="text-xs text-slate-500 mt-1">Ventas multi-ítem, descuento automático de existencias y emisión de comprobante (HU-6.7)</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Formulario de Venta (Izquierda) -->
+          <div class="lg:col-span-2 bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
+            <h3 class="text-sm font-bold text-slate-800 border-b border-slate-200 pb-2">1. Datos de la Venta</h3>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Comprador (Estudiante / Acudiente de M2):</label>
+                <select id="venta-comprador" class="w-full border border-slate-300 rounded-lg p-2 outline-none">
+                  <option value="">-- Seleccionar comprador --</option>
+                  <!-- Cargado dinámicamente desde mock de M2 -->
+                </select>
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Medio de Pago:</label>
+                <select id="venta-medio-pago" class="w-full border border-slate-300 rounded-lg p-2 outline-none">
+                  <option value="EFECTIVO">Efectivo</option>
+                  <option value="TRANSFERENCIA">Transferencia bancaria</option>
+                  <option value="CONSIGNACION">Consignación</option>
+                </select>
+              </div>
+            </div>
+
+            <h3 class="text-sm font-bold text-slate-800 border-b border-slate-200 pb-2 pt-2">2. Agregar Prendas a la Venta</h3>
+
+            <div class="flex flex-col sm:flex-row gap-3 items-end bg-slate-50 p-4 rounded-lg border border-slate-200">
+              <div class="flex-1 text-xs">
+                <label class="block font-semibold text-slate-700 mb-1">Uniforme disponible:</label>
+                <select id="venta-select-uniforme" onchange="actualizarMaxCantidadVenta()" class="w-full border border-slate-300 rounded p-2 outline-none bg-white">
+                  <!-- Llenado dinámico -->
+                </select>
+              </div>
+
+              <div class="w-24 text-xs">
+                <label class="block font-semibold text-slate-700 mb-1">Cantidad:</label>
+                <input type="number" id="venta-cantidad" min="1" value="1" class="w-full border border-slate-300 rounded p-2 text-center outline-none bg-white">
+              </div>
+
+              <button onclick="agregarItemVenta()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded shadow transition">
+                <i class="fa-solid fa-cart-plus mr-1"></i> Agregar
+              </button>
+            </div>
+
+            <!-- Tabla de Ítems en Carrito -->
+            <div class="border border-slate-200 rounded-lg overflow-hidden">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-100 text-slate-600 text-[11px] uppercase">
+                  <tr>
+                    <th class="px-3 py-2">Prenda / Talla</th>
+                    <th class="px-3 py-2 text-center">Cant.</th>
+                    <th class="px-3 py-2 text-right">Precio Unit.</th>
+                    <th class="px-3 py-2 text-right">Subtotal</th>
+                    <th class="px-3 py-2 text-center">Quitar</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-carrito-ventas" class="divide-y divide-slate-200">
+                  <tr>
+                    <td colspan="5" class="px-4 py-4 text-center text-slate-400">No hay prendas agregadas a la venta aún.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="flex justify-between items-center pt-3 border-t border-slate-200">
+              <div class="text-sm font-bold text-slate-700">Total a Pagar:</div>
+              <div id="venta-total-display" class="text-2xl font-black text-indigo-700">$ 0</div>
+            </div>
+
+            <button onclick="confirmarVenta()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-check"></i> Confirmar Venta y Generar Comprobante
+            </button>
+          </div>
+
+          <!-- Historial de Ventas Recientes (Derecha) -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-receipt text-indigo-600"></i> Ventas Confirmadas
+            </h3>
+            <p class="text-[11px] text-slate-500">Movimientos inmutables registrados con consecutivo único.</p>
+
+            <div id="lista-ventas-confirmadas" class="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+              <!-- Renderiza JS -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- TAB 5: PRÉSTAMO DE UNIFORMES (HU-6.8 / RF-M6-08) -->
+      <!-- =================================================================== -->
+      <section id="tab-prestamos" class="tab-content hidden space-y-6">
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-hand-holding-hand text-indigo-600"></i> Registro de Préstamo y Entrega de Uniformes
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">Control de prendas en calidad de préstamo, seguimiento a devoluciones y vencidos (HU-6.8)</p>
+          </div>
+          <button onclick="abrirModalPrestamo()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-2 transition">
+            <i class="fa-solid fa-plus"></i> Registrar Préstamo
+          </button>
+        </div>
+
+        <!-- Tabla de Préstamos -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 text-slate-600 uppercase text-[11px] border-b border-slate-200">
+              <tr>
+                <th class="px-4 py-3">ID</th>
+                <th class="px-4 py-3">Estudiante</th>
+                <th class="px-4 py-3">Uniforme</th>
+                <th class="px-4 py-3">Fecha Préstamo</th>
+                <th class="px-4 py-3">Fecha Límite</th>
+                <th class="px-4 py-3">Estado Entrega</th>
+                <th class="px-4 py-3 text-center">Estado Préstamo</th>
+                <th class="px-4 py-3 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-prestamos" class="divide-y divide-slate-200">
+              <!-- Renderiza JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- TAB 6: REPORTES FINANCIEROS Y EXPORTACIÓN (HU-6.4 y HU-6.5) -->
+      <!-- =================================================================== -->
+      <section id="tab-reportes" class="tab-content hidden space-y-6">
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-file-invoice-dollar text-indigo-600"></i> Reportes Financieros Consolidados
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">Consulta por período y exportación a PDF y XLSX (HU-6.4 y HU-6.5)</p>
+          </div>
+
+          <!-- Botones de Exportación (HU-6.5) -->
+          <div class="flex items-center gap-2">
+            <button onclick="exportarExcel()" class="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-file-excel"></i> Exportar Excel (.XLSX)
+            </button>
+            <button onclick="exportarPDF()" class="px-3.5 py-2 bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+            </button>
+          </div>
+        </div>
+
+        <!-- Filtro de Rango de Fechas (Criterio HU-6.4) -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-4 items-center">
+          <div class="flex items-center gap-2 text-xs">
+            <label class="font-semibold text-slate-700">Fecha Inicial:</label>
+            <input type="date" id="rep-fecha-ini" value="2026-10-01" class="border border-slate-300 rounded px-2.5 py-1.5 outline-none">
+          </div>
+          <div class="flex items-center gap-2 text-xs">
+            <label class="font-semibold text-slate-700">Fecha Final:</label>
+            <input type="date" id="rep-fecha-fin" value="2026-10-31" class="border border-slate-300 rounded px-2.5 py-1.5 outline-none">
+          </div>
+          <button onclick="generarReporteFinanciero()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow transition">
+            <i class="fa-solid fa-filter mr-1"></i> Generar Reporte
+          </button>
+        </div>
+
+        <!-- Resumen de Totales (Criterio HU-6.4) -->
+        <div id="area-reporte-imprimible" class="space-y-6">
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-200">
+              <p class="text-xs font-bold text-indigo-700 uppercase">Ingresos Totales</p>
+              <h3 id="rep-total-ingresos" class="text-xl font-black text-indigo-950 mt-1">$ 0</h3>
+              <p class="text-[10px] text-indigo-600 mt-1">Planes (M5) + Uniformes (M6)</p>
+            </div>
+
+            <div class="bg-teal-50 p-4 rounded-xl border border-teal-200">
+              <p class="text-xs font-bold text-teal-700 uppercase">Recaudo Mensualidades</p>
+              <h3 id="rep-total-mensualidades" class="text-xl font-black text-teal-950 mt-1">$ 0</h3>
+              <p class="text-[10px] text-teal-600 mt-1">Solo pagos registrados (M5)</p>
+            </div>
+
+            <div class="bg-amber-50 p-4 rounded-xl border border-amber-200">
+              <p class="text-xs font-bold text-amber-700 uppercase">Ventas de Uniformes</p>
+              <h3 id="rep-total-uniformes" class="text-xl font-black text-amber-950 mt-1">$ 0</h3>
+              <p class="text-[10px] text-amber-600 mt-1">Prendas vendidas en M6</p>
+            </div>
+
+            <div class="bg-rose-50 p-4 rounded-xl border border-rose-200">
+              <p class="text-xs font-bold text-rose-700 uppercase">Cartera Pendiente</p>
+              <h3 id="rep-total-cartera" class="text-xl font-black text-rose-950 mt-1">$ 1.250.000</h3>
+              <p class="text-[10px] text-rose-600 mt-1">Obligaciones por cobrar (M5)</p>
+            </div>
+          </div>
+
+          <!-- Detalle de Movimientos -->
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <h3 class="text-sm font-bold text-slate-800">Detalle de Movimientos en el Período</h3>
+              <span id="rep-contador-movimientos" class="text-xs text-slate-500 font-semibold">0 movimientos encontrados</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-100 text-slate-600 uppercase text-[11px] border-b border-slate-200">
+                  <tr>
+                    <th class="px-4 py-3">Fecha</th>
+                    <th class="px-4 py-3">Comprobante</th>
+                    <th class="px-4 py-3">Concepto / Detalle</th>
+                    <th class="px-4 py-3">Origen</th>
+                    <th class="px-4 py-3">Medio de Pago</th>
+                    <th class="px-4 py-3 text-right">Monto</th>
+                    <th class="px-4 py-3 text-center">Estado</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-reportes" class="divide-y divide-slate-200">
+                  <!-- Renderiza JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODALES DE APOYO -->
+  <!-- ===================================================================== -->
+
+  <!-- MODAL: REGISTRAR TRABAJADOR (HU-6.2 y HU-6.3) -->
+  <div id="modal-personal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="text-base font-bold text-slate-900">Registrar Nuevo Miembro del Personal</h3>
+        <button onclick="cerrarModalPersonal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+      </div>
+
+      <form id="form-personal" onsubmit="guardarTrabajador(event)" class="space-y-3 text-xs">
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block font-semibold mb-1">Tipo Doc:*</label>
+            <select id="pers-tipo-doc" class="w-full border rounded p-2">
+              <option value="CC">CC</option>
+              <option value="CE">CE</option>
+              <option value="TI">TI</option>
+            </select>
+          </div>
+          <div class="col-span-2">
+            <label class="block font-semibold mb-1">Número Documento:*</label>
+            <input type="text" id="pers-num-doc" required placeholder="Ej. 1018273645" class="w-full border rounded p-2">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold mb-1">Nombres:*</label>
+            <input type="text" id="pers-nombres" required placeholder="Ej. Carlos Eduardo" class="w-full border rounded p-2">
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Apellidos:*</label>
+            <input type="text" id="pers-apellidos" required placeholder="Ej. Gómez Ruiz" class="w-full border rounded p-2">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold mb-1">Correo Institucional:*</label>
+            <input type="email" id="pers-correo" required placeholder="carlos@patinaje.edu.co" class="w-full border rounded p-2">
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Teléfono:*</label>
+            <input type="text" id="pers-telefono" required placeholder="3101234567" class="w-full border rounded p-2">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold mb-1">Cargo Laboral:*</label>
+            <select id="pers-cargo" class="w-full border rounded p-2">
+              <option value="Profesor">Profesor</option>
+              <option value="Contador">Contador</option>
+              <option value="Fisioterapeuta">Fisioterapeuta</option>
+              <option value="Auxiliar Administrativo">Auxiliar Administrativo</option>
+              <option value="Coordinador">Coordinador</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Rol en Sistema (HU-6.3):</label>
+            <select id="pers-rol-sistema" class="w-full border rounded p-2">
+              <option value="SIN_ACCESO">Sin acceso al sistema</option>
+              <option value="PROFESOR">Profesor</option>
+              <option value="CONTADOR">Contador (Reportes)</option>
+              <option value="ADMINISTRADOR">Administrador</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t">
+          <button type="button" onclick="cerrarModalPersonal()" class="px-4 py-2 bg-slate-200 text-slate-700 rounded font-bold">Cancelar</button>
+          <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded font-bold">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: REGISTRAR REFERENCIA DE UNIFORME (HU-6.6) -->
+  <div id="modal-uniforme" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="text-base font-bold text-slate-900">Registrar Referencia de Uniforme</h3>
+        <button onclick="cerrarModalUniforme()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+      </div>
+
+      <form id="form-uniforme" onsubmit="guardarUniforme(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold mb-1">Referencia:*</label>
+          <input type="text" id="uni-ref" required placeholder="Ej. UNI-COMP-2026" class="w-full border rounded p-2 uppercase">
+        </div>
+
+        <div>
+          <label class="block font-semibold mb-1">Nombre de la Prenda:*</label>
+          <input type="text" id="uni-nombre" required placeholder="Ej. Licra de Competencia Profesional" class="w-full border rounded p-2">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold mb-1">Talla:*</label>
+            <select id="uni-talla" class="w-full border rounded p-2">
+              <option value="6">6</option>
+              <option value="8">8</option>
+              <option value="10">10</option>
+              <option value="12">12</option>
+              <option value="14">14</option>
+              <option value="XS">XS</option>
+              <option value="S">S</option>
+              <option value="M">M</option>
+              <option value="L">L</option>
+              <option value="XL">XL</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Tipo:*</label>
+            <select id="uni-tipo" class="w-full border rounded p-2">
+              <option value="COMPETENCIA">Competencia</option>
+              <option value="ENTRENAMIENTO">Entrenamiento</option>
+              <option value="PRESENTACION">Presentación</option>
+              <option value="ACCESORIO">Accesorio</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold mb-1">Costo Unitario ($):*</label>
+            <input type="number" id="uni-costo" min="0" required placeholder="50000" class="w-full border rounded p-2">
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Precio Venta ($):*</label>
+            <input type="number" id="uni-precio" min="0" required placeholder="85000" class="w-full border rounded p-2">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold mb-1">Cantidad Inicial:*</label>
+            <input type="number" id="uni-cantidad" min="0" required value="10" class="w-full border rounded p-2">
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Cantidad Mínima Alerta:*</label>
+            <input type="number" id="uni-minima" min="1" required value="5" class="w-full border rounded p-2">
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t">
+          <button type="button" onclick="cerrarModalUniforme()" class="px-4 py-2 bg-slate-200 text-slate-700 rounded font-bold">Cancelar</button>
+          <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded font-bold">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: REGISTRAR PRÉSTAMO (HU-6.8) -->
+  <div id="modal-prestamo" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="text-base font-bold text-slate-900">Registrar Entrega / Préstamo de Uniforme</h3>
+        <button onclick="cerrarModalPrestamo()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+      </div>
+
+      <form id="form-prestamo" onsubmit="guardarPrestamo(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold mb-1">Estudiante (Patinador activo de M2):*</label>
+          <select id="pres-estudiante" required class="w-full border rounded p-2">
+            <!-- Dinámico -->
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold mb-1">Prenda a prestar:*</label>
+          <select id="pres-uniforme" required class="w-full border rounded p-2">
+            <!-- Dinámico -->
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold mb-1">Fecha Préstamo:*</label>
+            <input type="date" id="pres-fecha-ini" required class="w-full border rounded p-2">
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Fecha Estimada Devolución:*</label>
+            <input type="date" id="pres-fecha-fin" required class="w-full border rounded p-2">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold mb-1">Estado de Entrega:*</label>
+          <input type="text" id="pres-estado-entrega" required placeholder="Ej. Prenda en óptimo estado, limpia y con etiquetas" class="w-full border rounded p-2">
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t">
+          <button type="button" onclick="cerrarModalPrestamo()" class="px-4 py-2 bg-slate-200 text-slate-700 rounded font-bold">Cancelar</button>
+          <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded font-bold">Registrar Préstamo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: RECIBO / COMPROBANTE DE VENTA IMPRIMIBLE (HU-6.7) -->
+  <div id="modal-comprobante" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+      <div id="printable-area" class="border border-slate-300 p-6 rounded-xl bg-slate-50 space-y-4">
+        <div class="text-center border-b pb-3">
+          <h2 class="text-lg font-black text-indigo-900">ESCUELA DE PATINAJE</h2>
+          <p class="text-xs text-slate-500 font-semibold">Comprobante de Venta de Uniformes</p>
+          <p id="recibo-numero" class="text-sm font-mono font-bold text-indigo-700 mt-1">VTA-0001</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <div><strong>Fecha:</strong> <span id="recibo-fecha">29/10/2026</span></div>
+          <div><strong>Medio de Pago:</strong> <span id="recibo-medio">Efectivo</span></div>
+          <div class="col-span-2"><strong>Comprador:</strong> <span id="recibo-comprador">Laura Sofía Morales (Patinadora)</span></div>
+        </div>
+
+        <table class="w-full text-xs text-left border-t border-b border-slate-300 my-2">
+          <thead>
+            <tr class="text-slate-600 font-bold border-b border-slate-200">
+              <th class="py-1">Prenda</th>
+              <th class="py-1 text-center">Cant.</th>
+              <th class="py-1 text-right">Unitario</th>
+              <th class="py-1 text-right">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody id="recibo-tbody" class="divide-y divide-slate-200">
+            <!-- Dinámico -->
+          </tbody>
+        </table>
+
+        <div class="flex justify-between items-center text-sm font-bold pt-1">
+          <span>VALOR TOTAL PAGADO:</span>
+          <span id="recibo-total" class="text-base font-black text-slate-900">$ 0</span>
+        </div>
+
+        <div class="text-[10px] text-center text-slate-400 pt-2 border-t">
+          Soporte válido de entrega de inventario — Módulo 6 FIS
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2">
+        <button onclick="window.print()" class="px-4 py-2 bg-slate-800 text-white rounded font-bold text-xs"><i class="fa-solid fa-print mr-1"></i> Imprimir</button>
+        <button onclick="cerrarModalComprobante()" class="px-4 py-2 bg-indigo-600 text-white rounded font-bold text-xs">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT: LÓGICA COMPLETA DE NEGOCIO Y DATOS (SEEDS + STORAGE) -->
+  <script>
+    // =========================================================================
+    // BASE DE DATOS LOCAL (SIMULACIÓN DE TABLAS POSTGRESQL + CONTRATOS EXTERNOS)
+    // =========================================================================
+
+    // Mocks de integración (M1, M2, M3, M5)
+    let m2_patinadores = [
+      { id: 1, nombres: "Laura Sofía Morales", tipo: "PATINADOR", doc: "1019283746", activo: true },
+      { id: 2, nombres: "Santiago Andrés Pérez", tipo: "PATINADOR", doc: "1028374651", activo: true },
+      { id: 3, nombres: "María Fernanda Castro (Acudiente)", tipo: "ACUDIENTE", doc: "52839401", activo: true },
+      { id: 4, nombres: "Juan Diego Ramírez", tipo: "PATINADOR", doc: "1039485720", activo: true },
+      { id: 5, nombres: "Valentina Ospina", tipo: "PATINADOR", doc: "1048596031", activo: false } // Inactiva
+    ];
+
+    let m5_pagos_externos = [
+      { id: 101, fecha: "2026-10-05", comp: "PAG-2026-001", concepto: "Mensualidad Octubre - 3 días/sem", medio: "TRANSFERENCIA", monto: 180000, estado: "REGISTRADO" },
+      { id: 102, fecha: "2026-10-10", comp: "PAG-2026-002", concepto: "Mensualidad Octubre - 6 días/sem", medio: "EFECTIVO", monto: 260000, estado: "REGISTRADO" },
+      { id: 103, fecha: "2026-10-15", comp: "PAG-2026-003", concepto: "Pago sesión única", medio: "EFECTIVO", monto: 25000, estado: "REGISTRADO" },
+      { id: 104, fecha: "2026-10-18", comp: "PAG-2026-004", concepto: "Pago mensualidad errónea", medio: "TRANSFERENCIA", monto: 180000, estado: "ANULADO" } // No debe sumarse
+    ];
+
+    // Datos propios del Módulo 6
+    let m6_personal = [
+      { id: 1, tipo_doc: "CC", num_doc: "1018273645", nombres: "Carlos Eduardo", apellidos: "Gómez Ruiz", correo: "carlos.gomez@patinaje.edu.co", tel: "3101234567", cargo: "Profesor", rol: "PROFESOR", estado: "ACTIVO" },
+      { id: 2, tipo_doc: "CC", num_doc: "1029384756", nombres: "Andrea Liliana", apellidos: "Vargas Peña", correo: "andrea.vargas@patinaje.edu.co", tel: "3159876543", cargo: "Profesor", rol: "PROFESOR", estado: "ACTIVO" },
+      { id: 3, tipo_doc: "CC", num_doc: "79483920", nombres: "Mauricio Andrés", apellidos: "Torres Castro", correo: "mauricio.torres@patinaje.edu.co", tel: "3204567890", cargo: "Contador", rol: "CONTADOR", estado: "ACTIVO" },
+      { id: 4, tipo_doc: "CC", num_doc: "52849302", nombres: "Claudia Patricia", apellidos: "Méndez Hoyos", correo: "claudia.mendez@patinaje.edu.co", tel: "3123456789", cargo: "Fisioterapeuta", rol: "SIN_ACCESO", estado: "ACTIVO" },
+      { id: 5, tipo_doc: "CC", num_doc: "80192837", nombres: "Jorge Enrique", apellidos: "Pinzón Silva", correo: "jorge.pinzon@patinaje.edu.co", tel: "3187654321", cargo: "Profesor", rol: "PROFESOR", estado: "INACTIVO" } // Borrado lógico
+    ];
+
+    let m6_uniformes = [
+      { id: 1, ref: "UNI-COMP-01", nombre: "Enterizo Competencia Élite", talla: "10", tipo: "COMPETENCIA", costo: 65000, precio: 110000, disponible: 8, minima: 5, activo: true },
+      { id: 2, ref: "UNI-COMP-01", nombre: "Enterizo Competencia Élite", talla: "12", tipo: "COMPETENCIA", costo: 68000, precio: 115000, disponible: 2, minima: 5, activo: true }, // Alerta bajo stock
+      { id: 3, ref: "UNI-ENTR-02", nombre: "Camiseta Entrenamiento Transpirable", talla: "M", tipo: "ENTRENAMIENTO", costo: 25000, precio: 45000, disponible: 18, minima: 6, activo: true },
+      { id: 4, ref: "UNI-PRES-03", nombre: "Chaqueta Presentación Club", talla: "S", tipo: "PRESENTACION", costo: 55000, precio: 95000, disponible: 14, minima: 4, activo: true }
+    ];
+
+    let m6_ventas = [
+      {
+        id: 1,
+        consecutivo: "VTA-0001",
+        fecha: "2026-10-12",
+        comprador_id: 1,
+        comprador_nombre: "Laura Sofía Morales",
+        medio: "TRANSFERENCIA",
+        total: 110000,
+        items: [{ uniforme_id: 1, nombre: "Enterizo Competencia Élite (Talla 10)", cant: 1, precio: 110000, subtotal: 110000 }]
+      }
+    ];
+
+    let m6_prestamos = [
+      {
+        id: 1,
+        estudiante_id: 2,
+        estudiante_nombre: "Santiago Andrés Pérez",
+        uniforme_id: 4,
+        uniforme_nombre: "Chaqueta Presentación Club (Talla S)",
+        fecha_ini: "2026-10-10",
+        fecha_fin: "2026-10-25", // Vencido respecto a hoy 29 oct
+        estado_entrega: "Prenda en perfecto estado",
+        estado_prestamo: "VENCIDO",
+        fecha_real: null,
+        obs: null
+      },
+      {
+        id: 2,
+        estudiante_id: 4,
+        estudiante_nombre: "Juan Diego Ramírez",
+        uniforme_id: 3,
+        uniforme_nombre: "Camiseta Entrenamiento Transpirable (Talla M)",
+        fecha_ini: "2026-10-26",
+        fecha_fin: "2026-11-05",
+        estado_entrega: "Nueva",
+        estado_prestamo: "ACTIVO",
+        fecha_real: null,
+        obs: null
+      }
+    ];
+
+    let carritoVenta = [];
+    let consecutivoVenta = 2;
+    let rolActualSesion = "ADMINISTRADOR";
+
+    // =========================================================================
+    // INICIALIZACIÓN Y NAVEGACIÓN
+    // =========================================================================
+    window.onload = function() {
+      // Fecha por defecto en préstamos
+      const hoy = new Date().toISOString().split('T')[0];
+      if (document.getElementById('pres-fecha-ini')) {
+        document.getElementById('pres-fecha-ini').value = hoy;
+      }
+      recalcularKPIs();
+      renderizarTablaPersonal();
+      renderizarTablaUniformes();
+      poblarSelectoresVenta();
+      renderizarVentasConfirmadas();
+      renderizarTablaPrestamos();
+      generarReporteFinanciero();
+    };
+
+    function navegarA(tabId) {
+      // Validación de rol Contador (HU-6.3)
+      if (rolActualSesion === "CONTADOR" && tabId !== "tab-reportes") {
+        document.getElementById('bloqueo-contador').classList.remove('hidden');
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('bg-indigo-50', 'text-indigo-700', 'border-indigo-100'));
+        return;
+      } else {
+        document.getElementById('bloqueo-contador').classList.add('hidden');
+      }
+
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-indigo-50', 'text-indigo-700', 'border-indigo-100');
+        btn.classList.add('text-slate-600');
+      });
+      const activeBtn = document.getElementById('btn-' + tabId);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-indigo-50', 'text-indigo-700', 'border-indigo-100');
+        activeBtn.classList.remove('text-slate-600');
+      }
+    }
+
+    function cambiarRolSesion(nuevoRol) {
+      rolActualSesion = nuevoRol;
+      const badge = document.getElementById('role-badge');
+      if (nuevoRol === 'ADMINISTRADOR') {
+        badge.className = 'px-2 py-0.5 text-xs rounded-full bg-emerald-500 text-white font-bold';
+        badge.innerText = 'Admin Activo';
+        document.getElementById('bloqueo-contador').classList.add('hidden');
+        navegarA('tab-dashboard');
+      } else {
+        badge.className = 'px-2 py-0.5 text-xs rounded-full bg-amber-500 text-white font-bold';
+        badge.innerText = 'Contador (Restringido)';
+        navegarA('tab-reportes');
+      }
+    }
+
+    // =========================================================================
+    // HU-6.1: DASHBOARD Y KPIS
+    // =========================================================================
+    function recalcularKPIs() {
+      const fIni = document.getElementById('kpi-fecha-inicio').value;
+      const fFin = document.getElementById('kpi-fecha-fin').value;
+
+      // Estudiantes activos (M2)
+      const estActivos = m2_patinadores.filter(p => p.tipo === 'PATINADOR' && p.activo).length;
+      document.getElementById('kpi-estudiantes').innerText = estActivos;
+
+      // Profesores activos (M6)
+      const profActivos = m6_personal.filter(p => p.cargo === 'Profesor' && p.estado === 'ACTIVO').length;
+      document.getElementById('kpi-profesores').innerText = profActivos;
+
+      // Existencias uniformes (M6)
+      const stockTotal = m6_uniformes.reduce((acc, u) => acc + (u.activo ? u.disponible : 0), 0);
+      document.getElementById('kpi-uniformes').innerText = stockTotal + ' prendas';
+
+      // Ingresos en período (M5 mensualidades registradas + M6 ventas)
+      let sumIngresos = 0;
+      m5_pagos_externos.forEach(p => {
+        if (p.estado === 'REGISTRADO' && p.fecha >= fIni && p.fecha <= fFin) {
+          sumIngresos += p.monto;
+        }
+      });
+      m6_ventas.forEach(v => {
+        if (v.fecha >= fIni && v.fecha <= fFin) {
+          sumIngresos += v.total;
+        }
+      });
+      document.getElementById('kpi-ingresos').innerText = '$ ' + sumIngresos.toLocaleString('es-CO');
+    }
+
+    // =========================================================================
+    // HU-6.2 y HU-6.3: PERSONAL Y ASIGNACIÓN DE ROL CONTADOR
+    // =========================================================================
+    function renderizarTablaPersonal() {
+      const tbody = document.getElementById('tbody-personal');
+      const busqueda = document.getElementById('buscar-personal').value.toLowerCase();
+      const filtro = document.getElementById('filtro-estado-personal').value;
+
+      const filtrados = m6_personal.filter(p => {
+        const coincideTxt = p.nombres.toLowerCase().includes(busqueda) || 
+                            p.apellidos.toLowerCase().includes(busqueda) || 
+                            p.num_doc.includes(busqueda);
+        const coincideEstado = (filtro === 'TODOS') || (p.estado === filtro);
+        return coincideTxt && coincideEstado;
+      });
+
+      if (filtrados.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-400">No se encontró personal con los filtros aplicados.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtrados.map(p => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="px-4 py-3 font-mono font-medium">${p.tipo_doc} ${p.num_doc}</td>
+          <td class="px-4 py-3 font-semibold text-slate-900">${p.nombres} ${p.apellidos}</td>
+          <td class="px-4 py-3 text-slate-500">${p.correo}</td>
+          <td class="px-4 py-3 text-slate-500">${p.tel}</td>
+          <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-800">${p.cargo}</span></td>
+          <td class="px-4 py-3">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${p.rol === 'CONTADOR' ? 'bg-amber-100 text-amber-800' : (p.rol === 'ADMINISTRADOR' ? 'bg-indigo-100 text-indigo-800' : 'bg-slate-100 text-slate-700')}">
+              ${p.rol}
+            </span>
+          </td>
+          <td class="px-4 py-3">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${p.estado === 'ACTIVO' ? 'badge-ok' : 'badge-alert'}">
+              ${p.estado}
+            </span>
+          </td>
+          <td class="px-4 py-3 text-right space-x-1">
+            ${p.estado === 'ACTIVO' ? `
+              <button onclick="asignarRolContador(${p.id})" title="Asignar o Modificar Rol Contador (HU-6.3)" class="text-xs px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded border border-amber-200 font-semibold transition">
+                <i class="fa-solid fa-user-tag"></i> Rol
+              </button>
+              <button onclick="desactivarTrabajador(${p.id})" title="Desactivar (Borrado Lógico)" class="text-xs px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded border border-rose-200 font-semibold transition">
+                <i class="fa-solid fa-user-slash"></i> Desactivar
+              </button>
+            ` : `
+              <button onclick="reactivarTrabajador(${p.id})" title="Reactivar Trabajador" class="text-xs px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded border border-emerald-200 font-semibold transition">
+                <i class="fa-solid fa-user-check"></i> Reactivar
+              </button>
+            `}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function abrirModalPersonal() {
+      document.getElementById('form-personal').reset();
+      document.getElementById('modal-personal').classList.remove('hidden');
+    }
+
+    function cerrarModalPersonal() {
+      document.getElementById('modal-personal').classList.add('hidden');
+    }
+
+    function guardarTrabajador(e) {
+      e.preventDefault();
+      const numDoc = document.getElementById('pers-num-doc').value.trim();
+      const correo = document.getElementById('pers-correo').value.trim();
+
+      // Validación de unicidad de documento y correo (Criterio HU-6.2)
+      const docExiste = m6_personal.some(p => p.num_doc === numDoc);
+      const correoExiste = m6_personal.some(p => p.correo.toLowerCase() === correo.toLowerCase());
+
+      if (docExiste) {
+        alert("Error de validación (HU-6.2): Ya existe un trabajador registrado con el número de documento " + numDoc);
+        return;
+      }
+      if (correoExiste) {
+        alert("Error de validación (HU-6.2): Ya existe un trabajador con el correo institucional " + correo);
+        return;
+      }
+
+      const nuevo = {
+        id: m6_personal.length + 1,
+        tipo_doc: document.getElementById('pers-tipo-doc').value,
+        num_doc: numDoc,
+        nombres: document.getElementById('pers-nombres').value.trim(),
+        apellidos: document.getElementById('pers-apellidos').value.trim(),
+        correo: correo,
+        tel: document.getElementById('pers-telefono').value.trim(),
+        cargo: document.getElementById('pers-cargo').value,
+        rol: document.getElementById('pers-rol-sistema').value,
+        estado: "ACTIVO"
+      };
+
+      m6_personal.push(nuevo);
+      cerrarModalPersonal();
+      renderizarTablaPersonal();
+      recalcularKPIs();
+      alert("¡Trabajador registrado con éxito!");
+    }
+
+    function desactivarTrabajador(id) {
+      const p = m6_personal.find(item => item.id === id);
+      if (!p) return;
+      if (confirm(`¿Está seguro de desactivar a ${p.nombres} ${p.apellidos}?\n\nNota: Según HU-6.2 se realiza un borrado lógico; no se pierde su historial de actividad.`)) {
+        p.estado = 'INACTIVO';
+        p.rol = 'SIN_ACCESO'; // Revoca accesos al desactivar
+        renderizarTablaPersonal();
+        recalcularKPIs();
+      }
+    }
+
+    function reactivarTrabajador(id) {
+      const p = m6_personal.find(item => item.id === id);
+      if (p) {
+        p.estado = 'ACTIVO';
+        renderizarTablaPersonal();
+        recalcularKPIs();
+      }
+    }
+
+    function asignarRolContador(id) {
+      const p = m6_personal.find(item => item.id === id);
+      if (!p) return;
+      const confirma = confirm(`¿Desea asignar el rol CONTADOR a ${p.nombres} ${p.apellidos}?\n\nRegla HU-6.3: El usuario tendrá permisos estrictos para consultar y exportar reportes financieros únicamente.`);
+      if (confirma) {
+        p.rol = 'CONTADOR';
+        renderizarTablaPersonal();
+        alert(`Rol Contador asignado exitosamente a ${p.nombres} ${p.apellidos}`);
+      }
+    }
+
+    // =========================================================================
+    // HU-6.6: INVENTARIO DE UNIFORMES
+    // =========================================================================
+    function renderizarTablaUniformes() {
+      const tbody = document.getElementById('tbody-uniformes');
+      tbody.innerHTML = m6_uniformes.map(u => {
+        const alertaBaja = u.disponible <= u.minima;
+        return `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="px-4 py-3 font-mono font-bold text-slate-700">${u.ref}</td>
+            <td class="px-4 py-3 font-semibold text-slate-900">${u.nombre}</td>
+            <td class="px-4 py-3 font-bold">${u.talla}</td>
+            <td class="px-4 py-3"><span class="px-2 py-0.5 bg-slate-100 rounded text-[10px] font-semibold">${u.tipo}</span></td>
+            <td class="px-4 py-3 text-slate-500">$ ${u.costo.toLocaleString('es-CO')}</td>
+            <td class="px-4 py-3 font-bold text-indigo-900">$ ${u.precio.toLocaleString('es-CO')}</td>
+            <td class="px-4 py-3 text-center font-black ${alertaBaja ? 'text-rose-600' : 'text-slate-800'}">${u.disponible}</td>
+            <td class="px-4 py-3 text-center text-slate-400 font-semibold">${u.minima}</td>
+            <td class="px-4 py-3 text-center">
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${alertaBaja ? 'badge-alert animate-pulse' : 'badge-ok'}">
+                ${alertaBaja ? '⚠️ Stock Mínimo' : '✓ Óptimo'}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-right">
+              <button onclick="ajustarStock(${u.id})" class="text-xs px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded font-semibold transition">
+                <i class="fa-solid fa-boxes-packing mr-1"></i> Stock
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function abrirModalUniforme() {
+      document.getElementById('form-uniforme').reset();
+      document.getElementById('modal-uniforme').classList.remove('hidden');
+    }
+
+    function cerrarModalUniforme() {
+      document.getElementById('modal-uniforme').classList.add('hidden');
+    }
+
+    function guardarUniforme(e) {
+      e.preventDefault();
+      const ref = document.getElementById('uni-ref').value.trim().toUpperCase();
+      const talla = document.getElementById('uni-talla').value;
+      const tipo = document.getElementById('uni-tipo').value;
+
+      // Validación de unicidad compuesta: (referencia, talla, tipo) (Criterio HU-6.6)
+      const existeCompuesta = m6_uniformes.some(u => u.ref === ref && u.talla === talla && u.tipo === tipo);
+      if (existeCompuesta) {
+        alert(`Error de validación (HU-6.6):\nYa existe registrada la referencia ${ref} con talla ${talla} y tipo ${tipo}.`);
+        return;
+      }
+
+      const nuevo = {
+        id: m6_uniformes.length + 1,
+        ref: ref,
+        nombre: document.getElementById('uni-nombre').value.trim(),
+        talla: talla,
+        tipo: tipo,
+        costo: parseFloat(document.getElementById('uni-costo').value),
+        precio: parseFloat(document.getElementById('uni-precio').value),
+        disponible: parseInt(document.getElementById('uni-cantidad').value),
+        minima: parseInt(document.getElementById('uni-minima').value),
+        activo: true
+      };
+
+      m6_uniformes.push(nuevo);
+      cerrarModalUniforme();
+      renderizarTablaUniformes();
+      poblarSelectoresVenta();
+      recalcularKPIs();
+      alert("¡Referencia de uniforme registrada correctamente!");
+    }
+
+    function ajustarStock(id) {
+      const u = m6_uniformes.find(item => item.id === id);
+      if (!u) return;
+      const cantidad = prompt(`Ajustar existencias de ${u.nombre} (Talla ${u.talla}):\nIngrese la nueva cantidad disponible:`, u.disponible);
+      if (cantidad !== null) {
+        const num = parseInt(cantidad);
+        if (isNaN(num) || num < 0) {
+          alert("La cantidad no puede ser negativa.");
+          return;
+        }
+        u.disponible = num;
+        renderizarTablaUniformes();
+        recalcularKPIs();
+        poblarSelectoresVenta();
+      }
+    }
+
+    // =========================================================================
+    // HU-6.7: VENTA DE UNIFORMES Y COMPROBANTES
+    // =========================================================================
+    function poblarSelectoresVenta() {
+      // Compradores desde M2
+      const selComp = document.getElementById('venta-comprador');
+      if (selComp) {
+        selComp.innerHTML = '<option value="">-- Seleccionar comprador --</option>' + 
+          m2_patinadores.map(p => `<option value="${p.id}" ${!p.activo ? 'disabled' : ''}>${p.nombres} (${p.tipo}) ${!p.activo ? '[Inactivo]' : ''}</option>`).join('');
+      }
+
+      // Estudiantes para préstamo
+      const selEst = document.getElementById('pres-estudiante');
+      if (selEst) {
+        selEst.innerHTML = '<option value="">-- Seleccionar estudiante --</option>' + 
+          m2_patinadores.filter(p => p.tipo === 'PATINADOR' && p.activo).map(p => `<option value="${p.id}">${p.nombres} (Doc: ${p.doc})</option>`).join('');
+      }
+
+      // Uniformes disponibles para venta
+      const selUniVenta = document.getElementById('venta-select-uniforme');
+      if (selUniVenta) {
+        selUniVenta.innerHTML = m6_uniformes.map(u => 
+          `<option value="${u.id}" ${u.disponible <= 0 ? 'disabled' : ''}>
+            ${u.nombre} - Talla ${u.talla} (Disponibles: ${u.disponible}) - $ ${u.precio.toLocaleString('es-CO')}
+          </option>`
+        ).join('');
+      }
+
+      // Uniformes disponibles para préstamo
+      const selUniPres = document.getElementById('pres-uniforme');
+      if (selUniPres) {
+        selUniPres.innerHTML = m6_uniformes.filter(u => u.disponible > 0).map(u => 
+          `<option value="${u.id}">${u.nombre} - Talla ${u.talla} (Disponibles: ${u.disponible})</option>`
+        ).join('');
+      }
+    }
+
+    function actualizarMaxCantidadVenta() {
+      const uniId = parseInt(document.getElementById('venta-select-uniforme').value);
+      const u = m6_uniformes.find(item => item.id === uniId);
+      if (u) {
+        document.getElementById('venta-cantidad').max = u.disponible;
+      }
+    }
+
+    function agregarItemVenta() {
+      const uniId = parseInt(document.getElementById('venta-select-uniforme').value);
+      const cant = parseInt(document.getElementById('venta-cantidad').value);
+
+      if (isNaN(uniId)) {
+        alert("Seleccione un uniforme válido.");
+        return;
+      }
+      if (isNaN(cant) || cant <= 0) {
+        alert("La cantidad debe ser mayor a 0.");
+        return;
+      }
+
+      const u = m6_uniformes.find(item => item.id === uniId);
+      if (!u) return;
+
+      // Validación contra existencias (Criterio HU-6.7)
+      if (cant > u.disponible) {
+        alert(`Error: La cantidad solicitada (${cant}) supera las existencias disponibles (${u.disponible}) de este uniforme.`);
+        return;
+      }
+
+      // Revisar si ya está en carrito
+      const itemEnCarrito = carritoVenta.find(i => i.uniforme_id === uniId);
+      if (itemEnCarrito) {
+        if (itemEnCarrito.cant + cant > u.disponible) {
+          alert(`No hay stock suficiente para agregar más unidades. Máximo disponible: ${u.disponible}`);
+          return;
+        }
+        itemEnCarrito.cant += cant;
+        itemEnCarrito.subtotal = itemEnCarrito.cant * itemEnCarrito.precio;
+      } else {
+        carritoVenta.push({
+          uniforme_id: u.id,
+          nombre: `${u.nombre} (Talla ${u.talla})`,
+          cant: cant,
+          precio: u.precio,
+          subtotal: cant * u.precio
+        });
+      }
+
+      renderizarCarrito();
+    }
+
+    function renderizarCarrito() {
+      const tbody = document.getElementById('tbody-carrito-ventas');
+      if (carritoVenta.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-4 text-center text-slate-400">No hay prendas agregadas a la venta aún.</td></tr>`;
+        document.getElementById('venta-total-display').innerText = "$ 0";
+        return;
+      }
+
+      let total = 0;
+      tbody.innerHTML = carritoVenta.map((item, idx) => {
+        total += item.subtotal;
+        return `
+          <tr>
+            <td class="px-3 py-2 font-medium text-slate-800">${item.nombre}</td>
+            <td class="px-3 py-2 text-center font-bold">${item.cant}</td>
+            <td class="px-3 py-2 text-right">$ ${item.precio.toLocaleString('es-CO')}</td>
+            <td class="px-3 py-2 text-right font-bold text-indigo-900">$ ${item.subtotal.toLocaleString('es-CO')}</td>
+            <td class="px-3 py-2 text-center">
+              <button onclick="quitarItemCarrito(${idx})" class="text-rose-600 hover:text-rose-800"><i class="fa-solid fa-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById('venta-total-display').innerText = "$ " + total.toLocaleString('es-CO');
+    }
+
+    function quitarItemCarrito(idx) {
+      carritoVenta.splice(idx, 1);
+      renderizarCarrito();
+    }
+
+    function confirmarVenta() {
+      const compId = parseInt(document.getElementById('venta-comprador').value);
+      if (!compId) {
+        alert("Por favor seleccione el estudiante o acudiente comprador.");
+        return;
+      }
+      if (carritoVenta.length === 0) {
+        alert("Agregue al menos un uniforme a la venta.");
+        return;
+      }
+
+      const comprador = m2_patinadores.find(p => p.id === compId);
+      const medioPago = document.getElementById('venta-medio-pago').value;
+      const totalVenta = carritoVenta.reduce((acc, i) => acc + i.subtotal, 0);
+      const hoy = new Date().toISOString().split('T')[0];
+      const numComp = "VTA-" + String(consecutivoVenta).padStart(4, '0');
+      consecutivoVenta++;
+
+      // Descuento atómico del inventario (Criterio HU-6.7)
+      carritoVenta.forEach(item => {
+        const u = m6_uniformes.find(x => x.id === item.uniforme_id);
+        if (u) {
+          u.disponible -= item.cant;
+        }
+      });
+
+      const ventaGuardada = {
+        id: m6_ventas.length + 1,
+        consecutivo: numComp,
+        fecha: hoy,
+        comprador_id: compId,
+        comprador_nombre: comprador.nombres,
+        medio: medioPago,
+        total: totalVenta,
+        items: [...carritoVenta]
+      };
+
+      m6_ventas.unshift(ventaGuardada);
+
+      // Limpiar carrito
+      carritoVenta = [];
+      renderizarCarrito();
+      renderizarTablaUniformes();
+      poblarSelectoresVenta();
+      renderizarVentasConfirmadas();
+      recalcularKPIs();
+      generarReporteFinanciero();
+
+      // Mostrar Comprobante en Modal
+      mostrarComprobanteImprimible(ventaGuardada);
+    }
+
+    function renderizarVentasConfirmadas() {
+      const contenedor = document.getElementById('lista-ventas-confirmadas');
+      if (m6_ventas.length === 0) {
+        contenedor.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">No hay ventas registradas.</p>`;
+        return;
+      }
+
+      contenedor.innerHTML = m6_ventas.map(v => `
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-1">
+          <div class="flex justify-between items-center">
+            <span class="font-mono font-bold text-indigo-700">${v.consecutivo}</span>
+            <span class="text-[10px] text-slate-400">${v.fecha}</span>
+          </div>
+          <p class="font-semibold text-slate-800">${v.comprador_nombre}</p>
+          <div class="flex justify-between items-center pt-1 border-t border-slate-200">
+            <span class="text-[11px] text-slate-500">${v.medio} (${v.items.length} prenda/s)</span>
+            <span class="font-black text-slate-900">$ ${v.total.toLocaleString('es-CO')}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function mostrarComprobanteImprimible(v) {
+      document.getElementById('recibo-numero').innerText = v.consecutivo;
+      document.getElementById('recibo-fecha').innerText = v.fecha;
+      document.getElementById('recibo-medio').innerText = v.medio;
+      document.getElementById('recibo-comprador').innerText = v.comprador_nombre;
+
+      document.getElementById('recibo-tbody').innerHTML = v.items.map(i => `
+        <tr>
+          <td class="py-1">${i.nombre}</td>
+          <td class="py-1 text-center font-bold">${i.cant}</td>
+          <td class="py-1 text-right">$ ${i.precio.toLocaleString('es-CO')}</td>
+          <td class="py-1 text-right font-bold">$ ${i.subtotal.toLocaleString('es-CO')}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('recibo-total').innerText = "$ " + v.total.toLocaleString('es-CO');
+      document.getElementById('modal-comprobante').classList.remove('hidden');
+    }
+
+    function cerrarModalComprobante() {
+      document.getElementById('modal-comprobante').classList.add('hidden');
+    }
+
+    // =========================================================================
+    // HU-6.8: PRÉSTAMO Y ENTREGA DE UNIFORMES
+    // =========================================================================
+    function renderizarTablaPrestamos() {
+      const tbody = document.getElementById('tbody-prestamos');
+      tbody.innerHTML = m6_prestamos.map(p => {
+        let badgeClase = 'badge-info';
+        if (p.estado_prestamo === 'VENCIDO') badgeClase = 'badge-alert animate-pulse';
+        if (p.estado_prestamo === 'DEVUELTO') badgeClase = 'badge-ok';
+        if (p.estado_prestamo === 'PERDIDA_DANO') badgeClase = 'badge-warn';
+
+        return `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="px-4 py-3 font-mono font-bold text-slate-500">#${p.id}</td>
+            <td class="px-4 py-3 font-semibold text-slate-900">${p.estudiante_nombre}</td>
+            <td class="px-4 py-3 text-slate-700">${p.uniforme_nombre}</td>
+            <td class="px-4 py-3 text-slate-500">${p.fecha_ini}</td>
+            <td class="px-4 py-3 font-semibold ${p.estado_prestamo === 'VENCIDO' ? 'text-rose-600' : 'text-slate-700'}">${p.fecha_fin}</td>
+            <td class="px-4 py-3 text-slate-500 text-[11px]">${p.estado_entrega}</td>
+            <td class="px-4 py-3 text-center">
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${badgeClase}">
+                ${p.estado_prestamo}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-right space-x-1">
+              ${(p.estado_prestamo === 'ACTIVO' || p.estado_prestamo === 'VENCIDO') ? `
+                <button onclick="registrarDevolucion(${p.id})" class="text-xs px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded border border-emerald-200 font-semibold transition" title="Registrar Devolución">
+                  <i class="fa-solid fa-rotate-left mr-1"></i> Devolver
+                </button>
+                <button onclick="marcarPerdidaDano(${p.id})" class="text-xs px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded border border-amber-200 font-semibold transition" title="Reportar Daño o Pérdida">
+                  <i class="fa-solid fa-triangle-exclamation"></i>
+                </button>
+              ` : `
+                <span class="text-slate-400 text-[11px] italic">Cerrado</span>
+              `}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function abrirModalPrestamo() {
+      poblarSelectoresVenta();
+      document.getElementById('modal-prestamo').classList.remove('hidden');
+    }
+
+    function cerrarModalPrestamo() {
+      document.getElementById('modal-prestamo').classList.add('hidden');
+    }
+
+    function guardarPrestamo(e) {
+      e.preventDefault();
+      const estId = parseInt(document.getElementById('pres-estudiante').value);
+      const uniId = parseInt(document.getElementById('pres-uniforme').value);
+      const fechaIni = document.getElementById('pres-fecha-ini').value;
+      const fechaFin = document.getElementById('pres-fecha-fin').value;
+
+      if (fechaFin < fechaIni) {
+        alert("Error de validación (HU-6.8): La fecha estimada de devolución no puede ser anterior a la fecha de préstamo.");
+        return;
+      }
+
+      const estudiante = m2_patinadores.find(p => p.id === estId);
+      const uniforme = m6_uniformes.find(u => u.id === uniId);
+
+      if (uniforme.disponible <= 0) {
+        alert("Error (HU-6.8): No hay existencias disponibles para prestar este uniforme.");
+        return;
+      }
+
+      // Descontar 1 unidad disponible del stock
+      uniforme.disponible -= 1;
+
+      m6_prestamos.unshift({
+        id: m6_prestamos.length + 1,
+        estudiante_id: estId,
+        estudiante_nombre: estudiante.nombres,
+        uniforme_id: uniId,
+        uniforme_nombre: `${uniforme.nombre} (Talla ${uniforme.talla})`,
+        fecha_ini: fechaIni,
+        fecha_fin: fechaFin,
+        estado_entrega: document.getElementById('pres-estado-entrega').value.trim(),
+        estado_prestamo: "ACTIVO",
+        fecha_real: null,
+        obs: null
+      });
+
+      cerrarModalPrestamo();
+      renderizarTablaPrestamos();
+      renderizarTablaUniformes();
+      recalcularKPIs();
+      alert("¡Préstamo registrado exitosamente! La prenda se descontó del inventario disponible.");
+    }
+
+    function registrarDevolucion(id) {
+      const p = m6_prestamos.find(item => item.id === id);
+      if (!p) return;
+      const estadoRecepcion = prompt("Registro de devolución (HU-6.8):\nIngrese el estado en que se recibe la prenda (ej. 'Limpia, completa y en buen estado'):", "Recibida en buen estado");
+      if (estadoRecepcion !== null) {
+        p.estado_prestamo = 'DEVUELTO';
+        p.estado_recepcion = estadoRecepcion;
+        p.fecha_real = new Date().toISOString().split('T')[0];
+
+        // Restituir disponibilidad al inventario
+        const u = m6_uniformes.find(x => x.id === p.uniforme_id);
+        if (u) u.disponible += 1;
+
+        renderizarTablaPrestamos();
+        renderizarTablaUniformes();
+        recalcularKPIs();
+        alert("¡Devolución registrada con éxito! La prenda vuelve a estar disponible en inventario.");
+      }
+    }
+
+    function marcarPerdidaDano(id) {
+      const p = m6_prestamos.find(item => item.id === id);
+      if (!p) return;
+      const obs = prompt("Justificación de pérdida o daño (Criterio HU-6.8):\nIngrese el motivo o descripción del daño/pérdida:");
+      if (obs && obs.trim().length > 0) {
+        p.estado_prestamo = 'PERDIDA_DANO';
+        p.obs = obs.trim();
+        p.fecha_real = new Date().toISOString().split('T')[0];
+        // Nota: no se devuelve la prenda al stock disponible porque se dañó/perdió
+        renderizarTablaPrestamos();
+        alert("Préstamo cerrado como Pérdida / Daño con observación registrada.");
+      }
+    }
+
+    // =========================================================================
+    // HU-6.4 y HU-6.5: REPORTES FINANCIEROS Y EXPORTACIÓN
+    // =========================================================================
+    let reporteFiltradoActual = [];
+
+    function generarReporteFinanciero() {
+      const fIni = document.getElementById('rep-fecha-ini').value;
+      const fFin = document.getElementById('rep-fecha-fin').value;
+
+      if (fIni > fFin) {
+        alert("Error de validación (HU-6.4): La fecha inicial no puede ser posterior a la fecha final.");
+        return;
+      }
+
+      // Consolidar pagos de M5 (solo REGISTRADO) + ventas de uniformes de M6
+      reporteFiltradoActual = [];
+      let totalMensualidades = 0;
+      let totalVentasUni = 0;
+
+      // 1. Pagos de M5
+      m5_pagos_externos.forEach(p => {
+        if (p.fecha >= fIni && p.fecha <= fFin) {
+          const esValido = (p.estado === 'REGISTRADO');
+          if (esValido) totalMensualidades += p.monto;
+          reporteFiltradoActual.push({
+            fecha: p.fecha,
+            comp: p.comp,
+            concepto: p.concepto,
+            origen: "M5 · Mensualidades",
+            medio: p.medio,
+            monto: p.monto,
+            estado: p.estado,
+            esValido: esValido
+          });
+        }
+      });
+
+      // 2. Ventas de uniformes M6
+      m6_ventas.forEach(v => {
+        if (v.fecha >= fIni && v.fecha <= fFin) {
+          totalVentasUni += v.total;
+          reporteFiltradoActual.push({
+            fecha: v.fecha,
+            comp: v.consecutivo,
+            concepto: `Venta uniformes (${v.comprador_nombre})`,
+            origen: "M6 · Uniformes",
+            medio: v.medio,
+            monto: v.total,
+            estado: "REGISTRADO",
+            esValido: true
+          });
+        }
+      });
+
+      // Ordenar cronológicamente
+      reporteFiltradoActual.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+      const totalIngresos = totalMensualidades + totalVentasUni;
+
+      // Actualizar tarjetas de totales
+      document.getElementById('rep-total-ingresos').innerText = "$ " + totalIngresos.toLocaleString('es-CO');
+      document.getElementById('rep-total-mensualidades').innerText = "$ " + totalMensualidades.toLocaleString('es-CO');
+      document.getElementById('rep-total-uniformes').innerText = "$ " + totalVentasUni.toLocaleString('es-CO');
+      document.getElementById('rep-contador-movimientos').innerText = `${reporteFiltradoActual.length} movimiento(s) encontrado(s)`;
+
+      // Renderizar tabla
+      const tbody = document.getElementById('tbody-reportes');
+      if (reporteFiltradoActual.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400">No se encontraron movimientos financieros en el rango seleccionado.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = reporteFiltradoActual.map(r => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="px-4 py-3 font-mono text-slate-600">${r.fecha}</td>
+          <td class="px-4 py-3 font-mono font-bold text-slate-800">${r.comp}</td>
+          <td class="px-4 py-3 font-semibold text-slate-900">${r.concepto}</td>
+          <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${r.origen.includes('M5') ? 'bg-teal-100 text-teal-800' : 'bg-amber-100 text-amber-800'}">${r.origen}</span></td>
+          <td class="px-4 py-3 text-slate-500">${r.medio}</td>
+          <td class="px-4 py-3 text-right font-black ${r.estado === 'ANULADO' ? 'text-slate-400 line-through' : 'text-slate-900'}">$ ${r.monto.toLocaleString('es-CO')}</td>
+          <td class="px-4 py-3 text-center">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${r.estado === 'REGISTRADO' ? 'badge-ok' : 'badge-alert'}">
+              ${r.estado}
+            </span>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // HU-6.5: Exportación a Excel (.XLSX / .CSV compatible)
+    function exportarExcel() {
+      if (reporteFiltradoActual.length === 0) {
+        alert("No hay registros en el reporte actual para exportar.");
+        return;
+      }
+
+      const fIni = document.getElementById('rep-fecha-ini').value;
+      const fFin = document.getElementById('rep-fecha-fin').value;
+      const nombreArchivo = `Reporte_Financiero_${fIni}_al_${fFin}.csv`;
+
+      let csv = "\uFEFFFecha;Comprobante;Concepto;Origen;Medio de Pago;Monto;Estado\n";
+      reporteFiltradoActual.forEach(r => {
+        csv += `"${r.fecha}";"${r.comp}";"${r.concepto}";"${r.origen}";"${r.medio}";"${r.monto}";"${r.estado}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", nombreArchivo);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // HU-6.5: Exportación a PDF imprimible
+    function exportarPDF() {
+      window.print();
+    }
+  </script>
+</body>
+</html>
